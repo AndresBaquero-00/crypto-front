@@ -1,13 +1,13 @@
 
-export enum ClassicalAlghoritms {
-	Caesar = 'Caesar',
-	Polybius = 'Polybius',
-	Playfair = 'Playfair'
+export enum ClassicalAlgorithms {
+	Caesar   = 'ca',
+	Polybius = 'po',
+	Playfair = 'pl'
 }
 
-export enum ModernAlghoritms {
-	DES3 = 'DES3',
-	AES = 'AES',
-	RSA = 'RSA',
-	EC = 'EC'
+export enum ModernAlgorithms {
+	DES3 = 'des3',
+	AES  = 'aes',
+	RSA  = 'rsa',
+	EC   = 'ec'
 }

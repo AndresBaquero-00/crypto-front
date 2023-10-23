@@ -1,17 +1,24 @@
-import { ClassicalAlghoritms, ModernAlghoritms } from '../enums';
+import { ClassicalAlgorithms, ModernAlgorithms } from '../enums';
 
-export interface CipherData {
-	id: string | number;
-	cipher: ClassicalAlghoritms | ModernAlghoritms;
-	raw: string;
-	encrypted: string;
-	time?: number;
-}
+export type RequestType = 'encrypt' | 'decrypt';
 
 export interface APIResponse {
 	ok: boolean;
 	status: number;
-	cipher: ClassicalAlghoritms | ModernAlghoritms;
+	raw?: string;
+	encoded?: string;
+}
+
+export interface Algorithm {
+	algorithm: ClassicalAlgorithms | ModernAlgorithms;
+	name: string;
+	img: string;
+}
+
+export interface CipherData {
+	id: string | number;
+	algorithm: Algorithm;
 	raw: string;
-	encrypted: string;
+	encoded: string;
+	time: number;
 }

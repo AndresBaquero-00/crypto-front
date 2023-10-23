@@ -1,154 +1,94 @@
-import { useState } from 'react';
-import { GetStaticProps, NextPage } from 'next';
+import { useContext, useState } from 'react';
+import { NextPage } from 'next';
 import { SubmitHandler, useForm } from 'react-hook-form';
+import { Box, Button, Paper, TextField } from '@mui/material';
 
-import { Box, FormControl, IconButton, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material';
-import { ArrowForwardIosRounded } from '@mui/icons-material';
-
-import { BehaviorChart, HistoryTable, InfoCard } from '../components';
-import { classicalAlghoritms, raws } from '../data';
-import { ClassicalAlghoritms } from '../enums';
-import { CipherData } from '../interfaces';
+import { AlgorithmSelector, HistoryTable } from '../components';
+import { classicalAlgorithms } from '../data';
+import { Algorithm, CipherData } from '../interfaces';
 import { PageLayout } from '../layouts';
-import fetchCipherData from '../utils';
+import { getCipherData } from '../utils';
+import { ToastContext } from '../context';
 
 interface IFormValues {
-	raw: string;
-	cipher: ClassicalAlghoritms;
+	text: string;
+	cipher: string;
 }
 
-interface Props {
-	cipherData: CipherData[];
-}
+const ClassicalPage: NextPage = () => {
+	const [history, setHistory] = useState<CipherData[]>([]);
+	const { setToastOptions } = useContext(ToastContext);
+	const { register, setValue, handleSubmit } = useForm<IFormValues>({
+		defaultValues: { cipher: classicalAlgorithms.at(0)?.algorithm }
+	});
 
-const HomePage: NextPage<Props> = ({ cipherData }) => {
-	const { register, handleSubmit } = useForm<IFormValues>();
-	const [data, setData] = useState(cipherData);
-
-	const onSubmit: SubmitHandler<IFormValues> = (formValues) => {
-		fetchCipherData([formValues.cipher], [formValues.raw])
-			.then(d => setData([...data, ...d]));
+	const onSubmit: SubmitHandler<IFormValues> = async (formValues, e) => {
+		const { nativeEvent: { submitter } } = e as any;
+		const algorithm = classicalAlgorithms.find(algorithm => algorithm.algorithm === formValues.cipher);
+		try {
+			const data = await getCipherData(algorithm as Algorithm, formValues.text, submitter.name);
+			setHistory([...history, data]);
+		} catch (e) {
+			setToastOptions({ show: true, message: 'Error al encriptar.', color: 'error' });
+		}
 	};
 
 	return (
 		<PageLayout>
 			<Box
 				sx={{
-					padding: '10px 30px',
 					width: '100%',
+					padding: '20px',
 					display: 'flex',
-					alignItems: 'center',
-					gap: '30px'
+					alignItems: 'flex-start',
+					gap: '10px'
 				}}
 			>
-				<InfoCard
-					color={{ bg: 'status.good', t: 'white' }}
-					label='Tiempo Mínimo'
-					value={`${Math.min(...data.map(d => (d.time ?? 0)))}ms`} />
-				<InfoCard
-					color={{ bg: 'secondary.main', t: 'black' }}
-					label='Tiempo Promedio'
-					value={`${((data.map(d => (d.time ?? 0)).reduce((a,b) => a + b, 0)) / data.length).toFixed(2)}ms`}
-				/>
-				<InfoCard
-					color={{ bg: 'status.danger', t: 'white' }}
-					label='Tiempo Máximo'
-					value={`${Math.max(...data.map(d => (d.time ?? 0)))}ms`}
-				/>
-			</Box>
-			<Box
-				sx={{
-					padding: '10px 30px',
-					width: '100%',
-				}}
-			>
-				<BehaviorChart data={data} />
-			</Box>
-			<Box sx={{ padding: '10px 30px', width: '100%' }}>
-				<Typography variant='h5' sx={{ fontWeight: 600 }}>
-					Encriptar
-				</Typography>
-				<form
-					onSubmit={handleSubmit(onSubmit)}
-					style={{
-						width: '100%',
-						display: 'flex',
-						justifyContent: 'center',
-						alignItems: 'center',
-						gap: '30px',
-						marginTop: '20px'
+				<Paper
+					elevation={1}
+					sx={{
+						width: '80%',
+						maxWidth: '400px',
+						padding: '20px'
 					}}
 				>
-					<Box
-						sx={{
-							flex: 1,
-							display: 'flex',
-							justifyContent: 'center',
-							alignItems: 'center',
-							gap: '10px',
-						}}
-					>
-						<TextField
-							variant='outlined'
-							placeholder='Digite la cadena a encriptar...'
-							autoComplete='off'
-							color={'dark' as any}
-							{...register('raw', { required: true })}
-							sx={{ flex: 1, backgroundColor: '#F6F6F6' }}
+					<form onSubmit={handleSubmit(onSubmit)}>
+						<AlgorithmSelector
+							algorithms={classicalAlgorithms}
+							onChange={(value) => setValue('cipher', value)}
 						/>
-						<FormControl sx={{ flex: 1, backgroundColor: '#F6F6F6' }}>
-							<InputLabel color={'dark' as any}>
-								Cifrador
-							</InputLabel>
-							<Select
-								color={'dark' as any}
-								{...register('cipher', { required: true, value: ClassicalAlghoritms.Caesar })}
+						<TextField
+							fullWidth
+							autoComplete='off'
+							label='Cadena'
+							variant='outlined'
+							{...register('text', { required: true })}
+							sx={{ marginTop: '20px' }}
+						/>
+						<Box sx={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+							<Button
+								variant='contained'
+								type='submit'
+								name='encrypt'
+								sx={{ marginTop: '20px' }}
 							>
-								{
-									classicalAlghoritms.map(agh => (
-										<MenuItem key={agh} value={agh}>
-											{agh}
-										</MenuItem>
-									))
-								}
-							</Select>
-						</FormControl>
-					</Box>
-					<IconButton
-						type='submit'
-						sx={{
-							width: '50px',
-							padding: '15px',
-							borderRadius: '10px',
-							backgroundColor: 'dark.main',
-							transition: 'transform .2s',
-							'&:active': {
-								transform: 'scale(0.9)'
-							},
-							'&:hover, &:active': {
-								backgroundColor: 'dark.main',
-							}
-						}}
-					>
-						<ArrowForwardIosRounded sx={{ color: 'white' }} />
-					</IconButton>
-				</form>
-			</Box>
-			<Box
-				sx={{
-					padding: '10px 30px',
-					width: '100%',
-				}}
-			>
-				<HistoryTable data={data} />
+								Encriptar
+							</Button>
+							<Button
+								variant='contained'
+								type='submit'
+								name='decrypt'
+								sx={{ marginTop: '20px' }}
+							>
+								Desencriptar
+							</Button>
+						</Box>
+					</form>
+				</Paper>
+				<HistoryTable data={history} />
 			</Box>
 		</PageLayout>
 	)
 }
 
-export const getStaticProps: GetStaticProps = async (context) => {
-	const cipherData = await fetchCipherData(classicalAlghoritms, raws);
-	return { props: { cipherData } };
-}
-
-export default HomePage;
+export default ClassicalPage;

@@ -7,7 +7,6 @@ const instance = axios.create({
 
 instance.interceptors.request.use((config) => {
 	config.headers['request-startTime'] = hrtime();
-	
 	return config;
 });
 
@@ -19,4 +18,4 @@ instance.interceptors.response.use((response) => {
 	return response;
 });
 
-export default instance;
+export { instance as axios };

@@ -47,14 +47,14 @@ interface Props {
 
 export const BehaviorChart: FC<Props> = ({ data }) => {
 
-	const ciphers = Array.from(new Set(data.map(d => d.cipher)));
+	const ciphers = Array.from(new Set(data.map(d => d.algorithm.name)));
 	const series = ciphers.map(ch => ({
 		name: ch,
-		data: data.filter(d => d.cipher === ch).map(d => d.time)
+		data: data.filter(d => d.algorithm.name === ch).map(d => d.time)
 	}))
 
 	return (
-		<Box sx={{ marginTop: '50px' }}>
+		<Box>
 			<Typography variant='h5' sx={{ fontWeight: 600 }}>
 				Comportamiento
 			</Typography>
